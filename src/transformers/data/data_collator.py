@@ -23,7 +23,7 @@ from torch.nn.utils.rnn import pad_sequence
 from ..file_utils import PaddingStrategy
 from ..modeling_utils import PreTrainedModel
 from ..tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
-
+from torch.distributions import Poisson
 
 InputDataClass = NewType("InputDataClass", Any)
 
@@ -427,6 +427,8 @@ class DataCollatorForWholeWordMask(DataCollatorForLanguageModeling):
                     if i in ref_pos:
                         ref_tokens[i] = "##" + ref_tokens[i]
             mask_labels.append(self._whole_word_mask(ref_tokens))
+         
+
         batch_mask = _collate_batch(mask_labels, self.tokenizer)
         inputs, labels = self.mask_tokens(batch_input, batch_mask)
         return {"input_ids": inputs, "labels": labels}
@@ -435,7 +437,7 @@ class DataCollatorForWholeWordMask(DataCollatorForLanguageModeling):
         """
         Get 0/1 labels for masked tokens with whole word mask proxy
         """
-
+        
         cand_indexes = []
         for (i, token) in enumerate(input_tokens):
             if token == "[CLS]" or token == "[SEP]":
@@ -445,6 +447,7 @@ class DataCollatorForWholeWordMask(DataCollatorForLanguageModeling):
                 cand_indexes[-1].append(i)
             else:
                 cand_indexes.append([i])
+        
 
         random.shuffle(cand_indexes)
         num_to_predict = min(max_predictions, max(1, int(round(len(input_tokens) * self.mlm_probability))))
@@ -509,6 +512,170 @@ class DataCollatorForWholeWordMask(DataCollatorForLanguageModeling):
 
         # The rest of the time (10% of the time) we keep the masked input tokens unchanged
         return inputs, labels
+
+
+@dataclass
+class DataCollatorForInfillingMaskandRotation(DataCollatorForLanguageModeling):
+    """
+    Data collator used for language modeling.
+
+    - collates batches of tensors, honoring their tokenizer's pad_token
+    - preprocesses batches for masked language modeling
+    """
+    
+    m = Poisson(torch.tensor([3.]))
+    task_mix = 0.5
+    max_length: Optional[int] = 1024
+    pad_to_multiple_of: Optional[int] = 1024
+
+
+    def __call__(
+        self, examples: List[Union[List[int], torch.Tensor, Dict[str, torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
+
+        if isinstance(examples[0], (dict, BatchEncoding)):
+            input_ids = [e["input_ids"] for e in examples]
+        else:
+            input_ids = examples
+            examples = [{"input_ids": e} for e in examples]
+            
+        inputs_masked = []
+        attention_mask = []
+        labels = []
+        for i in input_ids:
+            if random.random()<self.task_mix:
+                # print('Rotation')
+                _inputs_masked, _labels = self.data_rotation(i)
+            else:
+                # print('Infilling')
+                _inputs_masked, _labels = self.mask_tokens(i)
+            #adding special tokens and padding
+            # print('Befor_tokenizer_prep_input', len(_inputs_masked))
+            # print('Befor_tokenizer_prep_label', len(_labels))
+            _pack = self.tokenizer.prepare_for_model(_inputs_masked, 
+                    padding=True, 
+                    trancaction=True,
+                    pad_to_multiple_of=self.pad_to_multiple_of, 
+                    max_length=self.max_length)
+            _labels = self.tokenizer.prepare_for_model(_labels, 
+                    padding=True,
+                    trancaction=True, 
+                    pad_to_multiple_of=self.pad_to_multiple_of, 
+                    max_length=self.max_length, 
+                    return_attention_mask=False)['input_ids']
+            _inputs_masked = _pack['input_ids']
+            _attention_mask = _pack['attention_mask']
+            # print('After_tokenizer_prep_input', len(_inputs_masked), 'start:', _inputs_masked[0:4], 'end', _inputs_masked[1018:]) 
+            # print('After_tokenizer_prep_label', len(_labels),'start:', _attention_mask[0:4], 'end', _attention_mask[1018:])
+            # print('After_tokenizer_prep_attention_mask', len(_attention_mask),'start:', _labels[0:4], 'end', _labels[1018:])   
+            #adding to list
+            inputs_masked.append(_inputs_masked)
+            labels.append(_labels)
+            attention_mask.append(_attention_mask)
+
+        
+        inputs_masked = _collate_batch(inputs_masked, self.tokenizer)
+        labels = _collate_batch(labels, self.tokenizer)
+        attention_mask = _collate_batch(attention_mask, self.tokenizer)
+        return {"input_ids": inputs_masked, "attention_mask": attention_mask, "labels": labels}
+
+
+    def mask_tokens(self, inputs) -> Tuple[list, list]:
+        """
+        Prepare masked tokens inputs/labels for masked language modeling: infilling like in BART paper.
+        """
+        
+        special_ids = self.tokenizer.convert_tokens_to_ids(self.tokenizer.special_tokens_map.values())
+        mask_token_id = self.tokenizer.convert_tokens_to_ids(self.tokenizer.special_tokens_map['mask_token'])
+        special_ids = torch.Tensor(special_ids).int()
+
+        def convert_to_spans(input_token):
+            input_tokens = input_token.copy()
+
+            #splitting dataset on spans with poisson's length lambda 3, special tokens are still inside
+            spans = []
+            span_length_list = [0]
+            for ind, i  in enumerate(input_tokens):
+
+                if sum(span_length_list) < len(input_tokens):
+                    sample = self.m.sample()
+                    span_length = int(sample.tolist()[0])
+                    spans.append(input_tokens[sum(span_length_list): sum(span_length_list)+span_length])
+                    span_length_list.append(span_length)
+                else:
+                    break 
+
+            return spans
+        
+        def replace_idx_to_mask(span, mlm_probability):
+
+            if mlm_probability>0.8:
+                print('Warning: mlm_probability > 0.8, overriding to 0.5')
+                mlm_probability=0.5
+            if mlm_probability<0:
+                print('Warning: mlm_probability < 0, overriding to 0.1')
+                mlm_probability=0.1
+            indices_random = torch.bernoulli(torch.full((len(span),), mlm_probability)).bool()
+            spans = []
+            for i in span:
+                spans.append(torch.Tensor(i).long())
+
+            for inds, span in enumerate(spans):
+                if span.numel() == 0:
+                    span = torch.Tensor([mask_token_id]).long()
+                    spans[inds] = span
+                    continue
+
+                if indices_random[inds]:
+                    spec_mask = (span[..., None] == special_ids).any(-1)
+                    span[~spec_mask] = mask_token_id
+                    prev = -5
+                    for word_idx, word in enumerate(span):
+
+                        if word!=mask_token_id:
+                            prev = word
+                            continue 
+                        elif (prev!=mask_token_id and prev!=-1):
+                            prev = word
+                            continue 
+                        elif (prev==mask_token_id or prev==-1):
+                            prev = word
+                            span[word_idx] = -1
+
+                    negmask = span == -1
+                    span = span[~negmask]
+                    spans[inds] = span
+
+            return spans
+        
+        spans = convert_to_spans(inputs)
+        replaced_spans = replace_idx_to_mask(spans, mlm_probability=self.mlm_probability)
+        
+        inputs_masked = torch.cat(replaced_spans)
+        #add task specific token as a first element in input IN = 2444
+        task_spec_token = torch.Tensor([self.tokenizer.convert_tokens_to_ids('IN')]).long()
+        # print('Before', inputs_masked[:10], 'Len:', inputs_masked.shape)
+        inputs_masked = torch.cat((task_spec_token, inputs_masked)) # zero token can be bos_token
+        # print('After', inputs_masked[:10], 'Len:', inputs_masked.shape)
+        labels = inputs
+
+        return tolist(inputs_masked), tolist(labels)
+
+    def data_rotation(self, inputs) -> Tuple[list, list]:
+        """
+        Prepare masked tokens inputs/labels for masked language modeling: Rotation, like in BART paper.
+        """
+        shift_point = random.randint(0,len(inputs))
+        # print('Before rotation', inputs[:10], 'Len:', len(inputs))
+        rotated_input = inputs[shift_point:] + inputs[:shift_point]
+        # print('After rotation', rotated_input[:10], 'Len:', len(rotated_input))
+        labels = inputs
+        #add task specific token as a first element in input RT = 13963
+        task_spec_token = self.tokenizer.convert_tokens_to_ids('RT')
+        rotated_input = [task_spec_token] + rotated_input
+        # print('After spec token addition', rotated_input[:10], 'Len:', len(rotated_input))
+
+        return rotated_input, labels
 
 
 @dataclass
