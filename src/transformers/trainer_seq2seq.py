@@ -176,6 +176,7 @@ class Seq2SeqTrainer(Trainer):
         with torch.no_grad():
             if self.use_amp:
                 with autocast():
+                    print('autocast')
                     outputs = model(**inputs)
             else:
                 outputs = model(**inputs)
@@ -185,8 +186,10 @@ class Seq2SeqTrainer(Trainer):
                     loss = self.label_smoother(outputs, inputs["labels"]).detach()
                     print(loss)
                 else:
+                    print('no smoother')
                     loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).detach()
             else:
+                print('no labs')
                 loss = None
 
         if self.args.prediction_loss_only:
