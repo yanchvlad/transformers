@@ -2384,7 +2384,8 @@ class Trainer:
             else:
                 if has_labels:
                     loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
-                    loss = loss.mean().detach()
+                    # loss = loss.mean().detach()
+                    loss = loss.detach()
                     if isinstance(outputs, dict):
                         logits = tuple(v for k, v in outputs.items() if k not in ignore_keys + ["loss"])
                     else:
