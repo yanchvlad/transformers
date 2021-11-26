@@ -1639,6 +1639,7 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
 
             loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), labels.view(-1))
             print(f'loss {loss}')
+            print(f'loss shape {loss.shape}')
             print('#'*20)
             print(f'logits size -1 function {lm_logits.size(-1)}')
             print(f'shape logits under function {lm_logits.view(-1, lm_logits.size(-1)).shape}')
