@@ -2181,8 +2181,6 @@ class Trainer:
             
             # Prediction step
             loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
-            print(self.prediction_step)
-            print(type(self.prediction_step))
             # print('after pred step', loss, logits, labels)
             # Update containers on host
             if loss is not None:
@@ -2240,8 +2238,6 @@ class Trainer:
 
         # Number of losses has been rounded to a multiple of batch_size and in a distributed training, the number of
         # samplers has been rounded to a multiple of batch_size, so we truncate.
-        print('all_losses')
-        print(all_losses)
         if all_losses is not None:
             all_losses = all_losses[:num_samples]
         if all_preds is not None:
@@ -2375,7 +2371,6 @@ class Trainer:
                     else:
                         loss_mb = raw_outputs[0]
                         logits_mb = raw_outputs[1:]
-                    print(f'loss before reduce mean smp sagemaker {loss_mb}')
                     loss = loss_mb.detach().cpu()
                     logits = smp_nested_concat(logits_mb)
                 else:
@@ -2388,8 +2383,7 @@ class Trainer:
             else:
                 if has_labels:
                     loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
-                    # loss = loss.mean().detach()
-                    loss = 0
+                    loss = loss.mean().detach()
                     print(f'loss in the prediction step function: {loss}')
                     if isinstance(outputs, dict):
                         logits = tuple(v for k, v in outputs.items() if k not in ignore_keys + ["loss"])
@@ -2417,8 +2411,7 @@ class Trainer:
         if len(logits) == 1:
             logits = logits[0]
 
-        # return (loss, logits, labels)
-        return 0
+        return (loss, logits, labels)
 
     def floating_point_ops(self, inputs: Dict[str, Union[torch.Tensor, Any]]):
         """
