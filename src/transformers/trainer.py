@@ -2257,6 +2257,8 @@ class Trainer:
         if all_losses is not None:
             # metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
             metrics[f"{metric_key_prefix}_loss"] = all_losses
+            print(all_losses)
+            print(metrics)
 
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
