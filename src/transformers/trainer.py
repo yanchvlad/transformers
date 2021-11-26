@@ -2182,7 +2182,6 @@ class Trainer:
             # Prediction step
             loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
             print('after pred step', loss, logits, labels)
-            loss = 0
             # Update containers on host
             if loss is not None:
                 losses = self._nested_gather(loss.repeat(batch_size))
@@ -2363,7 +2362,7 @@ class Trainer:
                 labels = labels[0]
         else:
             labels = None
-        print('im here')
+
         with torch.no_grad():
             if is_sagemaker_mp_enabled():
                 raw_outputs = smp_forward_only(model, inputs)
@@ -2375,7 +2374,7 @@ class Trainer:
                         loss_mb = raw_outputs[0]
                         logits_mb = raw_outputs[1:]
                     print(f'loss before reduce mean smp sagemaker {loss_mb}')
-                    loss = loss_mb.reduce_mean().detach().cpu()
+                    loss = loss_mb.detach().cpu()
                     logits = smp_nested_concat(logits_mb)
                 else:
                     loss = None
