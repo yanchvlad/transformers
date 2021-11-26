@@ -178,8 +178,6 @@ class Seq2SeqTrainer(Trainer):
                 with autocast():
                     print('autocast')
                     outputs = model(**inputs)
-                    print(model)
-                    print(outputs)
             else:
                 outputs = model(**inputs)
             if has_labels:
@@ -189,7 +187,6 @@ class Seq2SeqTrainer(Trainer):
                     print(loss)
                 else:
                     print('no smoother')
-                    print(outputs["loss"])
                     loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).detach()
                     print(loss)
             else:
