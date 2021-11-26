@@ -2414,8 +2414,9 @@ class Trainer:
         logits = nested_detach(logits)
         if len(logits) == 1:
             logits = logits[0]
-        loss = 0
-        return (loss, logits, labels)
+
+        # return (loss, logits, labels)
+        return 0
 
     def floating_point_ops(self, inputs: Dict[str, Union[torch.Tensor, Any]]):
         """
