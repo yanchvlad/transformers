@@ -2387,7 +2387,7 @@ class Trainer:
                 if has_labels:
                     loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
                     # loss = loss.mean().detach()
-                    loss = loss.detach()
+                    loss = 0
                     print(f'loss in the prediction step function: {loss}')
                     if isinstance(outputs, dict):
                         logits = tuple(v for k, v in outputs.items() if k not in ignore_keys + ["loss"])
