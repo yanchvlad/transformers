@@ -178,6 +178,7 @@ class Seq2SeqTrainer(Trainer):
                 with autocast():
                     print('autocast')
                     outputs = model(**inputs)
+                    print(type(model))
             else:
                 outputs = model(**inputs)
             if has_labels:
