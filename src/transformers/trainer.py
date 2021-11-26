@@ -2238,6 +2238,8 @@ class Trainer:
 
         # Number of losses has been rounded to a multiple of batch_size and in a distributed training, the number of
         # samplers has been rounded to a multiple of batch_size, so we truncate.
+        print('all_losses')
+        print(all_losses)
         if all_losses is not None:
             all_losses = all_losses[:num_samples]
         if all_preds is not None:
