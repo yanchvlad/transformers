@@ -187,7 +187,9 @@ class Seq2SeqTrainer(Trainer):
                     print(loss)
                 else:
                     print('no smoother')
+                    print(outputs["loss"])
                     loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).detach()
+                    print(loss)
             else:
                 print('no labs')
                 loss = None
