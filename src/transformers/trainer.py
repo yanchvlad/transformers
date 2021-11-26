@@ -2255,7 +2255,8 @@ class Trainer:
         metrics = denumpify_detensorize(metrics)
 
         if all_losses is not None:
-            metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
+            # metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
+            metrics[f"{metric_key_prefix}_loss"] = all_losses
 
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
