@@ -1635,9 +1635,9 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=-100)
-            loss = [loss_fct(lm_logits[i].view(-1, lm_logits.size(-1)), labels[i].view(-1)) for i in lm_logits.size[0]]
+            # loss = [loss_fct(lm_logits[i].view(-1, lm_logits.size(-1)), labels[i].view(-1)) for i in lm_logits.size[0]]
 
-            # loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), labels.view(-1))
+            loss = loss_fct(lm_logits, labels)
             print('#'*20)
             print(f'logits size -1 function {lm_logits.size(-1)}')
             print(f'shape logits under function {lm_logits.view(-1, lm_logits.size(-1)).shape}')
