@@ -2178,7 +2178,7 @@ class Trainer:
             observed_batch_size = find_batch_size(inputs)
             if observed_batch_size is not None:
                 observed_num_examples += observed_batch_size
-            print('before pred step', loss, logits, labels)
+            
             # Prediction step
             loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
             print('after pred step', loss, logits, labels)
