@@ -185,7 +185,7 @@ class Seq2SeqTrainer(Trainer):
                     loss = self.label_smoother(outputs, inputs["labels"]).detach()
                     print(loss)
                 else:
-                    loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).mean().detach()
+                    loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).detach()
             else:
                 loss = None
 
