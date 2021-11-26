@@ -181,7 +181,9 @@ class Seq2SeqTrainer(Trainer):
                 outputs = model(**inputs)
             if has_labels:
                 if self.label_smoother is not None:
-                    loss = self.label_smoother(outputs, inputs["labels"]).mean().detach()
+                    print(self.label_smoother(outputs, inputs["labels"]))
+                    loss = self.label_smoother(outputs, inputs["labels"]).detach()
+                    print(loss)
                 else:
                     loss = (outputs["loss"] if isinstance(outputs, dict) else outputs[0]).mean().detach()
             else:
