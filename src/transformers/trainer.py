@@ -1792,7 +1792,7 @@ class Trainer:
         else:
             # We don't use .loss here since the model may return tuples instead of ModelOutput.
             loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
-
+        print(f'loss inside compute loss {loss}')
         return (loss, outputs) if return_outputs else loss
 
     def is_local_process_zero(self) -> bool:
@@ -2371,7 +2371,7 @@ class Trainer:
                     else:
                         loss_mb = raw_outputs[0]
                         logits_mb = raw_outputs[1:]
-
+                    print(f'loss before reduce mean smp sagemaker {loss_mb}')
                     loss = loss_mb.reduce_mean().detach().cpu()
                     logits = smp_nested_concat(logits_mb)
                 else:
@@ -2386,6 +2386,7 @@ class Trainer:
                     loss, outputs = self.compute_loss(model, inputs, return_outputs=True)
                     # loss = loss.mean().detach()
                     loss = loss.detach()
+                    print(f'loss in the prediction step function: {loss}')
                     if isinstance(outputs, dict):
                         logits = tuple(v for k, v in outputs.items() if k not in ignore_keys + ["loss"])
                     else:
