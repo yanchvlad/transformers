@@ -1635,11 +1635,14 @@ class T5ForConditionalGeneration(T5PreTrainedModel):
         loss = None
         if labels is not None:
             loss_fct = CrossEntropyLoss(ignore_index=-100)
-            loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), labels.view(-1))
+            loss = [loss_fct(lm_logits[i].view(-1, lm_logits.size(-1)), labels[i].view(-1)) for i in lm_logits.size[0]]
+
+            # loss = loss_fct(lm_logits.view(-1, lm_logits.size(-1)), labels.view(-1))
             print('#'*20)
             print(f'logits size -1 function {lm_logits.size(-1)}')
             print(f'shape logits under function {lm_logits.view(-1, lm_logits.size(-1)).shape}')
             print(f'shape labels under function {labels.view(-1).shape}')
+            print(f'shape of labels {labels.shape}')
             print(f'Loss in the model {loss}, logits {lm_logits}, shape of logits {lm_logits.shape}')
             # TODO(thom): Add z_loss https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/layers.py#L666
 
