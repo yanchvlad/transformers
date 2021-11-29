@@ -2098,6 +2098,9 @@ class Trainer:
 
         self._memory_tracker.stop_and_update_metrics(output.metrics)
 
+        print('loss in trainer func:\n')
+        print(output.metrics['eval_loss'])
+
         return PredictionOutput(predictions=output.predictions, label_ids=output.label_ids, metrics=output.metrics)
 
     def evaluation_loop(
@@ -2258,6 +2261,8 @@ class Trainer:
             # metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
             metrics[f"{metric_key_prefix}_loss"] = all_losses
 
+        print('Eval loop losses:\n')
+        print(all_losses)
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
             if not key.startswith(f"{metric_key_prefix}_"):
