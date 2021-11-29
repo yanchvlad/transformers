@@ -2200,7 +2200,7 @@ class Trainer:
                 labels_host = labels if labels_host is None else nested_concat(labels_host, labels, padding_index=-100)
             self.control = self.callback_handler.on_prediction_step(self.args, self.state, self.control)
 
-            print(f'losses after nested_gather {losses}')
+            # print(f'losses after nested_gather {losses}')
 
             # Gather all tensors and put them back on the CPU if we have done enough accumulation steps.
             if self.args.eval_accumulation_steps is not None and (step + 1) % self.args.eval_accumulation_steps == 0:
@@ -2264,8 +2264,8 @@ class Trainer:
             # metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
             metrics[f"{metric_key_prefix}_loss"] = all_losses
 
-        print('Eval loop losses:\n')
-        print(all_losses)
+        # print('Eval loop losses:\n')
+        # print(all_losses)
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
             if not key.startswith(f"{metric_key_prefix}_"):
