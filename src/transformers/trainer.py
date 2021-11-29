@@ -2187,7 +2187,8 @@ class Trainer:
             # print('after pred step', loss, logits, labels)
             # Update containers on host
             if loss is not None:
-                losses = self._nested_gather(loss.repeat(batch_size))
+                # losses = self._nested_gather(loss.repeat(batch_size))
+                losses = self._nested_gather(loss)
                 losses_host = losses if losses_host is None else torch.cat((losses_host, losses), dim=0)
             if logits is not None:
                 logits = self._pad_across_processes(logits)
@@ -2198,6 +2199,8 @@ class Trainer:
                 labels = self._nested_gather(labels)
                 labels_host = labels if labels_host is None else nested_concat(labels_host, labels, padding_index=-100)
             self.control = self.callback_handler.on_prediction_step(self.args, self.state, self.control)
+
+            print(f'losses after nested_gather {losses}')
 
             # Gather all tensors and put them back on the CPU if we have done enough accumulation steps.
             if self.args.eval_accumulation_steps is not None and (step + 1) % self.args.eval_accumulation_steps == 0:
