@@ -1976,7 +1976,7 @@ class Trainer:
 
     def evaluate(
         self,
-        eval_dataset,
+        eval_dataset: Optional[List[str]] = None,
         ignore_keys: Optional[List[str]] = None,
         metric_key_prefix: str = "eval",
     ) -> Dict[str, float]:
