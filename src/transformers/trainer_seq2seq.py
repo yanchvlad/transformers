@@ -35,7 +35,7 @@ logger = logging.get_logger(__name__)
 class Seq2SeqTrainer(Trainer):
     def evaluate(
         self,
-        eval_dataset = None,
+        eval_dataset,
         ignore_keys: Optional[List[str]] = None,
         metric_key_prefix: str = "eval",
         max_length: Optional[int] = None,
@@ -70,6 +70,8 @@ class Seq2SeqTrainer(Trainer):
             A dictionary containing the evaluation loss and the potential metrics computed from the predictions. The
             dictionary also contains the epoch number which comes from the training state.
         """
+        print('seq')
+        print(eval_dataset)
         self._max_length = max_length
         self._num_beams = num_beams
         return super().evaluate(eval_dataset, ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix)
