@@ -2005,9 +2005,11 @@ class Trainer:
             dictionary also contains the epoch number which comes from the training state.
         """
         # memory metrics - must set up as early as possible
+        print('eval')
+        print(eval_dataset)
         self._memory_tracker.start()
         start_time = time.time()
-
+        print('imhere')
         def eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = ''):
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
@@ -2029,7 +2031,9 @@ class Trainer:
         if isinstance(eval_dataset, datasets.dataset_dict.DatasetDict):
             dataet_keys  = list(eval_dataset.keys())
             outputs = {}
-            for ind, i in enumerate(dataet_keys):   
+            for ind, i in enumerate(dataet_keys):  
+                print('mloop') 
+                print(eval_dataset[i])
                 output = eval_one_df(eval_dataset[i], ignore_keys, metric_key_prefix, prefix = i)
                 outputs.update(output.metrics)
         else:
