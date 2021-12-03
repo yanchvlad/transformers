@@ -2037,7 +2037,7 @@ class Trainer:
                 output = eval_one_df(eval_dataset[i], ignore_keys, metric_key_prefix, prefix = i)
                 outputs.update(output.metrics)
         else:
-            outputs = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
+            outputs = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '').metrics
 
 
         total_batch_size = self.args.eval_batch_size * self.args.world_size
