@@ -2030,7 +2030,7 @@ class Trainer:
             )
 
             return output
-
+        print(type(eval_dataset))
         if isinstance(eval_dataset, datasets.dataset_dict.DatasetDict):
             dataet_keys  = list(eval_dataset.keys())
             outputs = {}
