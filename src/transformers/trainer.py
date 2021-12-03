@@ -678,9 +678,6 @@ class Trainer:
                 If provided, will override :obj:`self.eval_dataset`. If it is an :obj:`datasets.Dataset`, columns not
                 accepted by the ``model.forward()`` method are automatically removed. It must implement :obj:`__len__`.
         """
-        print('dataloder get eval data loader')
-        print(eval_dataset)
-        print(self.eval_dataset)
         if eval_dataset is None and self.eval_dataset is None:
             raise ValueError("Trainer: evaluation requires an eval_dataset.")
         eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
@@ -2008,12 +2005,11 @@ class Trainer:
             dictionary also contains the epoch number which comes from the training state.
         """
         # memory metrics - must set up as early as possible
-        print('eval')
-        print(eval_dataset)
+
         eval_dataset = self.eval_dataset
         self._memory_tracker.start()
         start_time = time.time()
-        print('imhere')
+
         def eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = ''):
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
             eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
@@ -2031,28 +2027,31 @@ class Trainer:
             )
 
             return output
-        print(type(eval_dataset))
+
         if isinstance(eval_dataset, datasets.dataset_dict.DatasetDict):
             dataet_keys  = list(eval_dataset.keys())
             outputs = {}
+            num_samples = []
             for ind, i in enumerate(dataet_keys):  
-                print('mloop') 
-                print(eval_dataset[i])
                 output = eval_one_df(eval_dataset[i], ignore_keys, metric_key_prefix, prefix = i)
+                num_samples.append(output.num_samples)
                 outputs.update(output.metrics)
+            num_samples = sum(num_samples)
         else:
-            outputs = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '').metrics
+            output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '').metrics
+            outputs = output.metrics
+            num_samples = output.num_samples
 
 
         total_batch_size = self.args.eval_batch_size * self.args.world_size
-        # outputs.update(
-        #     speed_metrics(
-        #         metric_key_prefix,
-        #         start_time,
-        #         num_samples=outputs.num_samples,
-        #         num_steps=math.ceil(outputs.num_samples / total_batch_size),
-        #     )
-        # )
+        outputs.update(
+            speed_metrics(
+                metric_key_prefix,
+                start_time,
+                num_samples=num_samples,
+                num_steps=math.ceil(num_samples / total_batch_size),
+            )
+        )
 
         self.log(outputs)
 
