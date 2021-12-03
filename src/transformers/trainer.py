@@ -2041,14 +2041,14 @@ class Trainer:
 
 
         total_batch_size = self.args.eval_batch_size * self.args.world_size
-        outputs.update(
-            speed_metrics(
-                metric_key_prefix,
-                start_time,
-                num_samples=outputs.num_samples,
-                num_steps=math.ceil(outputs.num_samples / total_batch_size),
-            )
-        )
+        # outputs.update(
+        #     speed_metrics(
+        #         metric_key_prefix,
+        #         start_time,
+        #         num_samples=outputs.num_samples,
+        #         num_steps=math.ceil(outputs.num_samples / total_batch_size),
+        #     )
+        # )
 
         self.log(outputs)
 
