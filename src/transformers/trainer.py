@@ -1976,7 +1976,7 @@ class Trainer:
 
     def evaluate(
         self,
-        eval_dataset: Optional[Dataset] = None,
+        eval_dataset,
         ignore_keys: Optional[List[str]] = None,
         metric_key_prefix: str = "eval",
     ) -> Dict[str, float]:
@@ -2006,23 +2006,38 @@ class Trainer:
         """
         # memory metrics - must set up as early as possible
         self._memory_tracker.start()
-
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
         start_time = time.time()
 
-        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
-        output = eval_loop(
-            eval_dataloader,
-            description="Evaluation",
-            # No point gathering the predictions if there are no metrics, otherwise we defer to
-            # self.args.prediction_loss_only
-            prediction_loss_only=True if self.compute_metrics is None else None,
-            ignore_keys=ignore_keys,
-            metric_key_prefix=metric_key_prefix,
-        )
+        def eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = ''):
+            eval_dataloader = self.get_eval_dataloader(eval_dataset)
+            eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+            if prefix != 'validation':
+                metric_key_prefix = prefix
+            
+            output = eval_loop(
+                eval_dataloader,
+                description="Evaluation",
+                # No point gathering the predictions if there are no metrics, otherwise we defer to
+                # self.args.prediction_loss_only
+                prediction_loss_only=True if self.compute_metrics is None else None,
+                ignore_keys=ignore_keys,
+                metric_key_prefix=metric_key_prefix,
+            )
+
+            return output
+
+        if isinstance(eval_dataset, datasets.dataset_dict.DatasetDict):
+            dataet_keys  = list(eval_dataset.keys())
+            outputs = {}
+            for ind, i in enumerate(dataet_keys):   
+                output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
+                outputs.update(output.metrics)
+        else:
+            outputs = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
+
 
         total_batch_size = self.args.eval_batch_size * self.args.world_size
-        output.metrics.update(
+        outputs.update(
             speed_metrics(
                 metric_key_prefix,
                 start_time,
@@ -2031,17 +2046,17 @@ class Trainer:
             )
         )
 
-        self.log(output.metrics)
+        self.log(outputs)
 
         if DebugOption.TPU_METRICS_DEBUG in self.args.debug:
             # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
             xm.master_print(met.metrics_report())
 
-        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, output.metrics)
+        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, outputs)
 
-        self._memory_tracker.stop_and_update_metrics(output.metrics)
+        self._memory_tracker.stop_and_update_metrics(outputs)
 
-        return output.metrics
+        return outputs
 
     def predict(
         self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test"

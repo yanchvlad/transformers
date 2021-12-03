@@ -35,7 +35,7 @@ logger = logging.get_logger(__name__)
 class Seq2SeqTrainer(Trainer):
     def evaluate(
         self,
-        eval_dataset: Optional[Dataset] = None,
+        eval_dataset,
         ignore_keys: Optional[List[str]] = None,
         metric_key_prefix: str = "eval",
         max_length: Optional[int] = None,
