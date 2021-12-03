@@ -2030,7 +2030,7 @@ class Trainer:
             dataet_keys  = list(eval_dataset.keys())
             outputs = {}
             for ind, i in enumerate(dataet_keys):   
-                output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
+                output = eval_one_df(eval_dataset[i], ignore_keys, metric_key_prefix, prefix = '')
                 outputs.update(output.metrics)
         else:
             outputs = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
