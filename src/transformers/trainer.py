@@ -2010,6 +2010,7 @@ class Trainer:
         # memory metrics - must set up as early as possible
         print('eval')
         print(eval_dataset)
+        eval_dataset = self.eval_dataset
         self._memory_tracker.start()
         start_time = time.time()
         print('imhere')
