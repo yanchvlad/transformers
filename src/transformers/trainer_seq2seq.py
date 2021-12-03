@@ -35,12 +35,12 @@ logger = logging.get_logger(__name__)
 class Seq2SeqTrainer(Trainer):
     def evaluate(
         self,
-        eval_dataset,
-        ignore_keys,
-        max_length,
-        num_beams,
-        metric_key_prefix = "eval"
-    ):
+        eval_dataset = None,
+        ignore_keys: Optional[List[str]] = None,
+        metric_key_prefix: str = "eval",
+        max_length: Optional[int] = None,
+        num_beams: Optional[int] = None,
+    ) -> Dict[str, float]:
         """
         Run evaluation and returns metrics.
 

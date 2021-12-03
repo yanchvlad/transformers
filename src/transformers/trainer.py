@@ -1976,10 +1976,10 @@ class Trainer:
 
     def evaluate(
         self,
-        eval_dataset,
-        ignore_keys,
-        metric_key_prefix = "eval",
-    ):
+        eval_dataset = None,
+        ignore_keys: Optional[List[str]] = None,
+        metric_key_prefix: str = "eval",
+    ) -> Dict[str, float]:
         """
         Run evaluation and returns metrics.
 
