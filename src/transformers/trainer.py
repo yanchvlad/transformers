@@ -667,7 +667,7 @@ class Trainer:
                 process_index=self.args.process_index,
             )
 
-    def get_eval_dataloader(self, eval_dataset = None) -> DataLoader:
+    def get_eval_dataloader(self, eval_dataset) -> DataLoader:
         """
         Returns the evaluation :class:`~torch.utils.data.DataLoader`.
 
@@ -678,6 +678,9 @@ class Trainer:
                 If provided, will override :obj:`self.eval_dataset`. If it is an :obj:`datasets.Dataset`, columns not
                 accepted by the ``model.forward()`` method are automatically removed. It must implement :obj:`__len__`.
         """
+        print('dataloder get eval data loader')
+        print(eval_dataset)
+        print(self.eval_dataset)
         if eval_dataset is None and self.eval_dataset is None:
             raise ValueError("Trainer: evaluation requires an eval_dataset.")
         eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
