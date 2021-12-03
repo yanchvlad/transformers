@@ -268,7 +268,7 @@ class Trainer:
         args: TrainingArguments = None,
         data_collator: Optional[DataCollator] = None,
         train_dataset: Optional[Dataset] = None,
-        eval_dataset: Optional[Dataset] = None,
+        eval_dataset = None,
         tokenizer: Optional[PreTrainedTokenizerBase] = None,
         model_init: Callable[[], PreTrainedModel] = None,
         compute_metrics: Optional[Callable[[EvalPrediction], Dict]] = None,
@@ -667,7 +667,7 @@ class Trainer:
                 process_index=self.args.process_index,
             )
 
-    def get_eval_dataloader(self, eval_dataset: Optional[Dataset] = None) -> DataLoader:
+    def get_eval_dataloader(self, eval_dataset = None) -> DataLoader:
         """
         Returns the evaluation :class:`~torch.utils.data.DataLoader`.
 
