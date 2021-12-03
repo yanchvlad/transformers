@@ -2045,8 +2045,8 @@ class Trainer:
             speed_metrics(
                 metric_key_prefix,
                 start_time,
-                num_samples=output.num_samples,
-                num_steps=math.ceil(output.num_samples / total_batch_size),
+                num_samples=outputs.num_samples,
+                num_steps=math.ceil(outputs.num_samples / total_batch_size),
             )
         )
 
