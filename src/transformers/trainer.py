@@ -2038,7 +2038,7 @@ class Trainer:
                 outputs.update(output.metrics)
             num_samples = sum(num_samples)
         else:
-            output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '').metrics
+            output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = '')
             outputs = output.metrics
             num_samples = output.num_samples
 
