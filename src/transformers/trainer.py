@@ -2038,7 +2038,7 @@ class Trainer:
                 outputs.update(output.metrics)
             num_samples = sum(num_samples)
         else:
-            prefix  = list(eval_dataset.keys())[0]
+            prefix  = 'validation'
             output = eval_one_df(eval_dataset, ignore_keys, metric_key_prefix, prefix = prefix)
             outputs = output.metrics
             num_samples = output.num_samples
