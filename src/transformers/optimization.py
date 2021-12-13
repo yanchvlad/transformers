@@ -170,8 +170,7 @@ def get_cosine_with_hard_restarts_schedule_with_warmup(
 
 
 def get_polynomial_decay_schedule_with_warmup(
-    optimizer, num_warmup_steps, num_training_steps, lr_end=1e-7, power=3, last_epoch=-1
-):
+    optimizer, num_warmup_steps, num_training_steps, lr_end=1e-6, power=3, last_epoch=-1):
     """
     Create a schedule with a learning rate that decreases as a polynomial decay from the initial lr set in the
     optimizer to end lr defined by `lr_end`, after a warmup period during which it increases linearly from 0 to the
